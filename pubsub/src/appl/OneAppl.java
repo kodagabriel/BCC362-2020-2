@@ -34,7 +34,7 @@ public class OneAppl {
         System.out.print("Log " + nameClient + " itens: ");
         while (it.hasNext()) {
             Message aux = it.next();
-            if (!aux.getContent().contains(addressClient)) {
+            if (!aux.getContent().contains(":80")) {
                 System.out.print(aux.getContent() + aux.getLogId() + " | ");
             }
         }
