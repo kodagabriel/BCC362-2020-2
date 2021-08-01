@@ -2,6 +2,7 @@ package appl;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 
 import core.Message;
 
@@ -12,73 +13,54 @@ public class OneAppl {
         client.startConsole();
     }
 
-    public OneAppl(boolean flag) {
-        PubSubClient joubert = new PubSubClient("localhost", 8082);
-        PubSubClient debora = new PubSubClient("localhost", 8083);
-        PubSubClient jonata = new PubSubClient("localhost", 8084);
+    public OneAppl(boolean flag, String nameClient, String addressClient, int portClient, String addressHost, int portHost) {
+        PubSubClient joubert = new PubSubClient(addressClient, portClient);
 
-        joubert.subscribe("localhost", 8080);
-        Thread accessOne = new ThreadWrapper(joubert, "access Joubert- var X", "localhost", 8080);
-
-        debora.subscribe("localhost", 8080);
-        jonata.subscribe("localhost", 8081);
+        joubert.subscribe(addressHost, portHost);
+        Thread accessOne = new ThreadWrapper(joubert, "access " + nameClient + " - var X", addressHost, portHost);
 
         //accessOne = new ThreadWrapper(joubert, "access Joubert- var X", "localhost", 8080);
-        Thread accessTwo = new ThreadWrapper(debora, "access Debora- var X", "localhost", 8080);
-        Thread accessThree = new ThreadWrapper(jonata, "access Jonata- var X", "localhost", 8081);
         accessOne.start();
-        accessTwo.start();
-        accessThree.start();
 
         try {
-            accessTwo.join();
             accessOne.join();
-            accessThree.join();
         } catch (Exception e) {
 
         }
 
-
         List<Message> logJoubert = joubert.getLogMessages();
-        List<Message> logDebora = debora.getLogMessages();
-        List<Message> logJonata = jonata.getLogMessages();
 
         Iterator<Message> it = logJoubert.iterator();
-        System.out.print("Log Joubert itens: ");
+        System.out.print("Log " + nameClient + " itens: ");
         while (it.hasNext()) {
             Message aux = it.next();
-            System.out.print(aux.getContent() + aux.getLogId() + " | ");
-        }
-        System.out.println();
-
-        it = logJonata.iterator();
-        System.out.print("Log Jonata itens: ");
-        while (it.hasNext()) {
-            Message aux = it.next();
-            System.out.print(aux.getContent() + aux.getLogId() + " | ");
-        }
-        System.out.println();
-
-        it = logDebora.iterator();
-        System.out.print("Log Debora itens: ");
-        while (it.hasNext()) {
-            Message aux = it.next();
-            System.out.print(aux.getContent() + aux.getLogId() + " | ");
+            if (!aux.getContent().contains(addressClient)) {
+                System.out.print(aux.getContent() + aux.getLogId() + " | ");
+            }
         }
         System.out.println();
 
         joubert.unsubscribe("localhost", 8080);
-        debora.unsubscribe("localhost", 8080);
-        jonata.unsubscribe("localhost", 8080);
 
         joubert.stopPubSubClient();
-        debora.stopPubSubClient();
-        jonata.stopPubSubClient();
     }
 
     public static void main(String[] args) {
         // TODO Auto-generated method stub
-        new OneAppl(true);
+        Scanner reader = new Scanner(System.in);  // Reading from System.in
+        System.out.print("Enter the name for client: ");
+        String nameClient = reader.next();
+        System.out.print("Enter the address for client: ");
+        String IPClient = reader.next();
+        System.out.print("Enter the port for client: ");
+        int portClient = reader.nextInt();
+
+        System.out.print("Enter the address for host: ");
+        String IPHost = reader.next();
+        System.out.print("Enter the port for host: ");
+        int portHost = reader.nextInt();
+
+        new OneAppl(true, nameClient, IPClient, portClient, IPHost, portHost);
     }
 
     class ThreadWrapper extends Thread {
