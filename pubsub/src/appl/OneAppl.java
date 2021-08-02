@@ -28,7 +28,7 @@ public class OneAppl {
     public OneAppl(boolean flag) throws InterruptedException {
         Scanner reader = new Scanner(System.in);    // Reading from System.in
 
-        String brokerAddress = "localhost";
+        String brokerAddress = "10.128.0.15";
         int brokerPort = 8080;
         System.out.print("Enter the Broker port (ex.8080): Type 0 to use default (8080) ");
         int brokerPortAux = reader.nextInt();
