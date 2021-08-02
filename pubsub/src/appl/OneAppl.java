@@ -49,9 +49,9 @@ public class OneAppl {
         debora.subscribe(brokerAddress, brokerPort);
         jonata.subscribe(brokerAddress, brokerPort);
 
-        Thread accessOne = new ThreadSincronized(joubert, "x", "joubert", brokerAddress, brokerPort, 1);
-        Thread accessTwo = new ThreadSincronized(debora, "x", "debora", brokerAddress, brokerPort, 1);
-        Thread accessThree = new ThreadSincronized(joubert, "x", "joubert", brokerAddress, brokerPort, 2);
+        Thread accessOne = new ThreadSincronized(joubert, "x", "luma", brokerAddress, brokerPort, 1);
+        Thread accessTwo = new ThreadSincronized(debora, "x", "koda", brokerAddress, brokerPort, 1);
+        Thread accessThree = new ThreadSincronized(joubert, "x", "aril", brokerAddress, brokerPort, 2);
 
         accessOne.start();
         accessTwo.start();
@@ -71,10 +71,10 @@ public class OneAppl {
             e1.printStackTrace();
         }
 
-        Thread accessFour = new ThreadSincronized(debora, "x", "debora", brokerAddress, brokerPort, 2);
-        Thread accessFive = new ThreadSincronized(jonata, "x", "jonata", brokerAddress, brokerPort, 1);
-        Thread accessSix = new ThreadSincronized(debora, "x", "debora", brokerAddress, brokerPort, 3);
-        Thread accessSeven = new ThreadSincronized(joubert, "x", "joubert", brokerAddress, brokerPort, 3);
+        Thread accessFour = new ThreadSincronized(debora, "x", "luma", brokerAddress, brokerPort, 2);
+        Thread accessFive = new ThreadSincronized(jonata, "x", "koda", brokerAddress, brokerPort, 1);
+        Thread accessSix = new ThreadSincronized(debora, "x", "luma", brokerAddress, brokerPort, 3);
+        Thread accessSeven = new ThreadSincronized(joubert, "x", "aril", brokerAddress, brokerPort, 3);
 
         accessFour.start();
         accessFive.start();
