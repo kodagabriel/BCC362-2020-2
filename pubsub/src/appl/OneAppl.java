@@ -188,14 +188,9 @@ public class OneAppl {
                                     log.remove(i);
                                 }
                             }
-                        }else{
+                        }else {
                             log.remove(i);
                         }
-                        Iterator<Message> it2 = log.iterator();
-                        while (it2.hasNext()) {
-                            System.out.print(it2.next().getContent());
-                        }
-                        System.out.println();
                     } catch (Exception e) {
                         //Se encontramos um transação de unlock sem um par lock, ela tambem é removida, porem isso quer dizer que
                         //alguma desincronização ocorreu.
