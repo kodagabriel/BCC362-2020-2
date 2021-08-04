@@ -3,6 +3,7 @@ package appl;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.ThreadLocalRandom;
 
 import core.Message;
 import core.MessageImpl;
@@ -14,6 +15,8 @@ public class PubSubClient {
     private Server observer;
     private ThreadWrapper clientThread;
 
+    private int operationId;
+    private String clientName;
     private String clientAddress;
     private int clientPort;
 
@@ -23,9 +26,11 @@ public class PubSubClient {
         //otherwise the other constructor must be called
     }
 
-    public PubSubClient(String clientAddress, int clientPort) {
+    public PubSubClient(String clientName, String clientAddress, int clientPort) {
+        this.clientName = clientName;
         this.clientAddress = clientAddress;
         this.clientPort = clientPort;
+        this.operationId = ThreadLocalRandom.current().nextInt(0,10000);
         observer = new Server(clientPort);
         clientThread = new ThreadWrapper(observer);
         clientThread.start();
@@ -83,8 +88,50 @@ public class PubSubClient {
 
     }
 
+    public void intentLock(String brokerAddress, int brokerPort) {
+        Message msgPub = new MessageImpl();
+        msgPub.setBrokerId(brokerPort);
+        msgPub.setType("pub");
+        msgPub.setContent(this.getClientName()+" Op"+Integer.toString(this.getOperationId())+" "+"intent_to_lock");
+        Client locker = new Client(brokerAddress, brokerPort);
+        Message response = locker.sendReceive(msgPub);
+        if (response.getType().equals("backup")) {
+            brokerAddress = response.getContent().split(":")[0];
+            brokerPort = Integer.parseInt(response.getContent().split(":")[1]);
+            locker = new Client(brokerAddress, brokerPort);
+            locker.sendReceive(msgPub);
+        }
+    }
+
+    public void unlock(String brokerAddress, int brokerPort) {
+        Message msgPub = new MessageImpl();
+        msgPub.setBrokerId(brokerPort);
+        msgPub.setType("pub");
+        msgPub.setContent(this.getClientName()+" Op"+Integer.toString(this.getOperationId())+" "+"unlock");
+        Client unlocker = new Client(brokerAddress, brokerPort);
+        Message response = unlocker.sendReceive(msgPub);
+        if (response.getType().equals("backup")) {
+            brokerAddress = response.getContent().split(":")[0];
+            brokerPort = Integer.parseInt(response.getContent().split(":")[1]);
+            unlocker = new Client(brokerAddress, brokerPort);
+            unlocker.sendReceive(msgPub);
+        }
+    }
+
     public List<Message> getLogMessages() {
         return observer.getLogMessages();
+    }
+
+    public int getOperationId(){
+        return this.operationId;
+    }
+
+    public void incrementOperationId(){
+        this.operationId += 1;
+    }
+
+    public String getClientName(){
+        return this.clientName;
     }
 
     public void stopPubSubClient() {

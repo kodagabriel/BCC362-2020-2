@@ -1,132 +1,90 @@
 package appl;
 
-import java.security.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import core.Message;
 
-public class OneAppl {
+import javax.swing.plaf.synth.SynthOptionPaneUI;
 
-    public static void main(String[] args) throws InterruptedException {
-        // TODO Auto-generated method stub
-        new OneAppl(true);
-    }
+public class OneAppl {
 
     public OneAppl() {
         PubSubClient client = new PubSubClient();
         client.startConsole();
     }
 
-    public OneAppl(boolean flag) throws InterruptedException {
-        Scanner reader = new Scanner(System.in);    // Reading from System.in
+    public OneAppl(boolean flag) {
+        //Lendo a porta e endereço do client e broker
+        /*
+        Scanner reader = new Scanner(System.in);  // Reading from System.in
+        System.out.print("Enter the client address: ");
+        String clientAddress = reader.next();
+        System.out.print("Enter the client port number: ");
+        int clientPort = reader.nextInt(); // Scans the next token of the input as an int.
+        System.out.print("Enter the broker address: ");
+        String brokerAddress = reader.next();
+        System.out.print("Enter the broker port number: ");
+        int brokerPort = reader.nextInt(); // Scans the next token of the input as an int.
+        */
 
-        String brokerAddress = "10.128.0.15";
-        int brokerPort = 8080;
-        System.out.print("Enter the Broker port (ex.8080): Type 0 to use default (8080) ");
-        int brokerPortAux = reader.nextInt();
-        if (brokerPortAux != 0) {
-            brokerPort = brokerPortAux;
-        }
-        System.out.print("Enter the Client address (ex. 10.128.0.3): Type 0 to use default (localhost) ");
-        String clientAddressAux = reader.next();
+
+        String brokerAddress = "localhost";
+        int brokerPort = 8090;
         String clientAddress = "localhost";
-        if (clientAddressAux != "0") {
-            clientAddress = clientAddressAux;
-        }
-        PubSubClient joubert = new PubSubClient(clientAddress, 8084);
-        PubSubClient debora = new PubSubClient(clientAddress, 8082);
-        PubSubClient jonata = new PubSubClient(clientAddress, 8083);
+        int clientPort = 8092;
 
-        joubert.subscribe(brokerAddress, brokerPort);
-        debora.subscribe(brokerAddress, brokerPort);
-        jonata.subscribe(brokerAddress, brokerPort);
+        //Criando client
+        //O client é composto de um name e internamente possui um contador de operações.
+        //A primeira interação com o broker é a operação 1, a segunda, operação 2...
+        //Isso é usado para identificar conjuntos de lock, publish e unlock pertencentes a mesma operação
+        PubSubClient client1 = new PubSubClient("client1", clientAddress, 8092);
+        //PubSubClient client2 = new PubSubClient("client2", clientAddress, 8093);
+        //PubSubClient client3 = new PubSubClient("client3", clientAddress, 8094);
 
-        Thread accessOne = new ThreadSincronized(joubert, "x", "luma", brokerAddress, brokerPort, 1);
-        Thread accessTwo = new ThreadSincronized(debora, "x", "koda", brokerAddress, brokerPort, 1);
-        Thread accessThree = new ThreadSincronized(joubert, "x", "aril", brokerAddress, brokerPort, 2);
+        //Subscrevendo client
+        client1.subscribe(brokerAddress, brokerPort);
+        //client2.subscribe(brokerAddress, brokerPort);
+        //client3.subscribe(brokerAddress, brokerPort);
 
+        //Criando a thread que vai tentar dar lock no topico, publicar e então dar unlock
+        Thread accessOne = new ThreadLockPubUnlock(client1, "varX", brokerAddress, brokerPort);
+        //Thread accessTwo = new ThreadLockPubUnlock(client2, "varX", brokerAddress, brokerPort);
+        //Thread accessThree = new ThreadLockPubUnlock(client3, "varX", brokerAddress, brokerPort);
+
+        //Executando o metodo run da thread
         accessOne.start();
-        accessTwo.start();
-        accessThree.start();
+        //accessTwo.start();
+        //accessThree.start();
 
+        //Aguardando a conclusão da execução das threads
         try {
-            accessTwo.join();
+            //accessTwo.join();
             accessOne.join();
-            accessThree.join();
+            //accessThree.join();
         } catch (Exception e) {
-
+            e.printStackTrace();
         }
 
-        try {
-            Thread.currentThread().sleep(1000);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+        //desinscrevendo client
+        //client1.unsubscribe(brokerAddress, brokerPort);
+        //client2.unsubscribe(brokerAddress, brokerPort);
+        //client3.unsubscribe(brokerAddress, brokerPort);
 
-        Thread accessFour = new ThreadSincronized(debora, "x", "luma", brokerAddress, brokerPort, 2);
-        Thread accessFive = new ThreadSincronized(jonata, "x", "koda", brokerAddress, brokerPort, 1);
-        Thread accessSix = new ThreadSincronized(debora, "x", "luma", brokerAddress, brokerPort, 3);
-        Thread accessSeven = new ThreadSincronized(joubert, "x", "aril", brokerAddress, brokerPort, 3);
+        //client1.stopPubSubClient();
+        //client2.stopPubSubClient();
+        //client3.stopPubSubClient();
 
-        accessFour.start();
-        accessFive.start();
-        accessSix.start();
-        accessSeven.start();
-        try {
-            accessFour.join();
-            accessFive.join();
-            accessSix.join();
-            accessSeven.join();
-        } catch (Exception e) {
-
-        }
-
-        List<Message> log = joubert.getLogMessages();
-        List<Message> logAcquire = new ArrayList<Message>();
-        List<Message> logRelease = new ArrayList<Message>();
-        Iterator<Message> it = log.iterator();
-        while (it.hasNext()) {
-            Message aux = it.next();
-            String content = aux.getContent();
-            String[] parts2 = content.split("_");
-            try {
-                if (parts2[1].equals("acquire")) {
-                    logAcquire.add(aux);
-                }
-                else{
-                    logRelease.add(aux);
-                }
-            } catch(Exception e){
-            }
-        }
-        System.out.println("Log acquire:\n");
-        it = logAcquire.iterator();
-        while (it.hasNext()){
-            Message aux = it.next();
-            String content = aux.getContent();
-            System.out.print(content + " | ");
-        }
-
-        System.out.println("\n\nLog release:\n");
-        it = logRelease.iterator();
-        while (it.hasNext()){
-            Message aux = it.next();
-            String content = aux.getContent();
-            System.out.print(content + " | ");
-        }
-
-
-
+       // System.exit(0);
     }
 
+    public static void main(String[] args) {
+        new OneAppl(true);
+    }
+
+    //A partir da mensagem recebida, essa thread decide se vai fazer um lock, unlock ou publish em um topico
     class ThreadWrapper extends Thread {
         PubSubClient c;
         String msg;
@@ -141,106 +99,71 @@ public class OneAppl {
         }
 
         public void run() {
-            c.publish(msg, host, port);
+            if(msg.equals("lock")){
+                c.intentLock(host, port);
+            }else if(msg.equals("unlock")){
+                c.unlock(host, port);
+            }else{
+                c.publish(msg, host, port);
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
-    class ThreadSincronized extends Thread {
+    //Thread responsavel por identificar quando um lock para o client foi feito e ele pode realizar o publish
+    class ThreadLockPubUnlock extends Thread {
         PubSubClient c;
         String topic;
-        String client_name;
+        String clientName;
         String host;
         int port;
 
-        public ThreadSincronized(PubSubClient c, String topic, String client_name, String host, int port, int id) {
+        public ThreadLockPubUnlock(PubSubClient c, String topic, String host, int port) {
             this.c = c;
             this.topic = topic;
-            this.client_name = Integer.toString(id).concat(" " + client_name);
+            this.clientName = c.getClientName()+" Op"+Integer.toString(c.getOperationId())+" ";
             this.host = host;
             this.port = port;
-
         }
-
         public void run() {
-
-            Thread access = new ThreadWrapper(c, client_name.concat("_acquire_x"), host, port);
-            access.start();
+            //No inicio da execução, todos os clients desejam escrever no topico, então todos apresentam a requisição de lock
+            Thread lock = new ThreadWrapper(c, "lock", host, port);
+            lock.start();
             try {
-                access.join();
+                lock.join();
             } catch (Exception e) {
+                e.printStackTrace();
             }
 
             List<Message> log = c.getLogMessages();
-            while (true) {
-                try {
-                    Thread.currentThread().sleep(1000);
-                } catch (InterruptedException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                } // 1 segundo
+            //Análisando o log, decidimos se é a hora ou não do client publicar na variavel
+            log = c.getLogMessages();
+            Iterator<Message> it2 = log.iterator();
 
-                log = c.getLogMessages();
-                Iterator<Message> it = log.iterator();
-                it = log.iterator();
-                while (it.hasNext()) {
-                    Message i = it.next();
-                    String content = i.getContent();
-                    try {
-                        String[] parts = content.split("_");
-
-                        if (parts[1].equals("release")) {
-                            Iterator<Message> it2 = log.iterator();
-                            while (it2.hasNext()) {
-                                Message j = it2.next();
-                                String content2 = j.getContent();
-                                String[] parts2 = content2.split("_");
-
-                                if (parts2[0].equals(parts[0])) {
-                                    log.remove(j);
-                                    log.remove(i);
-                                    break;
-                                }
-                            }
-                        }
-                    } catch (Exception e) {
-                        log.remove(i);
-                    }
-                }
-                String first = null;
-                try {
-                    first = log.get(0).getContent();
-                } catch (Exception e) {
-                    System.out.print("Caiu na exception X\n");
-                    continue;
-                }
-
-                if (first.equals(client_name + "_acquire_x")) {
-
-                    System.out.print("\nAcessando X\n");
-                    try {
-                        Thread.currentThread().sleep(2000);
-                    } catch (InterruptedException e1) {
-                        // TODO Auto-generated catch block
-                        e1.printStackTrace();
-                    }
-
-                    access = new ThreadWrapper(c, client_name.concat("_release_x"), host, port);
-                    access.start();
-                    try {
-                        access.join();
-                    } catch (Exception e) {
-                    }
-                    break;
-                }
+            while (it2.hasNext()) {
+                Message aux = it2.next();
+                System.out.print(aux.getContent() + " || ");
             }
+            System.out.println();
+
+
+            //Impressão dos logs de operação para cada client
             log = c.getLogMessages();
             Iterator<Message> it = log.iterator();
+            it = log.iterator();
+            System.out.print("Log "+ c.getClientName()+" Op "+Integer.toString(c.getOperationId())+" -> ");
             while (it.hasNext()) {
                 Message aux = it.next();
                 System.out.print(aux.getContent() + aux.getLogId() + " | ");
             }
             System.out.println();
         }
+
     }
 
 }
+
