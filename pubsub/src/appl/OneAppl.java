@@ -16,33 +16,33 @@ public class OneAppl {
     public OneAppl(boolean flag) {
         //Lendo a porta e endereço do client e broker
 
-        //Scanner reader = new Scanner(System.in);  // Reading from System.in
-        //System.out.print("Enter the client address: ");
-        //String clientAddress = reader.next();
-        //System.out.print("Enter the client port number: ");
-        //int clientPort = reader.nextInt(); // Scans the next token of the input as an int.
-        //System.out.print("Enter the broker address: ");
-        //String brokerAddress = reader.next();
-        //System.out.print("Enter the broker port number: ");
-        //int brokerPort = reader.nextInt(); // Scans the next token of the input as an int.
+        Scanner reader = new Scanner(System.in);  // Reading from System.in
+        System.out.print("Enter the client address: ");
+        String clientAddress = reader.next();
+        System.out.print("Enter the client port number: ");
+        int clientPort = reader.nextInt(); // Scans the next token of the input as an int.
+        System.out.print("Enter the broker address: ");
+        String brokerAddress = reader.next();
+        System.out.print("Enter the broker port number: ");
+        int brokerPort = reader.nextInt(); // Scans the next token of the input as an int.
         //System.out.print("Enter the number of times client should access");
         //int numberOfTimes = reader.nextInt();
 
-        String brokerAddress = "localhost";
-        int brokerPort = 8090;
-        String clientAddress = "localhost";
-        int clientPort = 8092;
+        //String brokerAddress = "localhost";
+        //int brokerPort = 8080;
+        //String clientAddress = "localhost";
+        //int clientPort = 8092;
 
 
 
-        for (int i = 0; i < numberOfTimes; i++) {
+      //  for (int i = 0; i < numberOfTimes; i++) {
             //Criando client
             //O client é composto de um name e internamente possui um contador de operações.
             //A primeira interação com o broker é a operação 1, a segunda, operação 2...
             //Isso é usado para identificar conjuntos de lock, publish e unlock pertencentes a mesma operação
-            PubSubClient client1 = new PubSubClient("client1", clientAddress, 8092);
-            PubSubClient client2 = new PubSubClient("client2", clientAddress, 8093);
-            PubSubClient client3 = new PubSubClient("client3", clientAddress, 8094);
+            PubSubClient client1 = new PubSubClient("client1", clientAddress, clientPort);
+            PubSubClient client2 = new PubSubClient("client2", clientAddress, clientPort++);
+            PubSubClient client3 = new PubSubClient("client3", clientAddress, clientPort++);
 
             //Subscrevendo client
             client1.subscribe(brokerAddress, brokerPort);
@@ -76,7 +76,7 @@ public class OneAppl {
             client1.stopPubSubClient();
             client2.stopPubSubClient();
             client3.stopPubSubClient();
-        }
+       // }
     }
 
     public static void main(String[] args) {
@@ -191,11 +191,11 @@ public class OneAppl {
                         }else{
                             log.remove(i);
                         }
-                        Iterator<Message> it2 = log.iterator();
+                       /* Iterator<Message> it2 = log.iterator();
                         while (it2.hasNext()) {
                             System.out.print(it2.next().getContent());
                         }
-                        System.out.println();
+                        System.out.println();*/
                     } catch (Exception e) {
                         //Se encontramos um transação de unlock sem um par lock, ela tambem é removida, porem isso quer dizer que
                         //alguma desincronização ocorreu.
