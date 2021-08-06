@@ -41,8 +41,8 @@ public class OneAppl {
             //A primeira interação com o broker é a operação 1, a segunda, operação 2...
             //Isso é usado para identificar conjuntos de lock, publish e unlock pertencentes a mesma operação
             PubSubClient client1 = new PubSubClient("client1", clientAddress, clientPort);
-            PubSubClient client2 = new PubSubClient("client2", clientAddress, clientPort++);
-            PubSubClient client3 = new PubSubClient("client3", clientAddress, clientPort++);
+            PubSubClient client2 = new PubSubClient("client2", clientAddress, clientPort+1);
+            PubSubClient client3 = new PubSubClient("client3", clientAddress, clientPort+2);
 
             //Subscrevendo client
             client1.subscribe(brokerAddress, brokerPort);
